@@ -3,59 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balkan Hitster Scanner</title>
+    <title>Balkan Hitster App</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { background: #121212; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
-        #reader { width: 100%; max-width: 400px; margin: auto; border-radius: 15px; overflow: hidden; border: 2px solid #1DB954; }
-        #player-container { margin-top: 20px; height: 80px; width: 100%; max-width: 400px; margin-left: auto; margin-right: auto; position: relative; }
-        .mask { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 10; display: flex; align-items: center; justify-content: center; border: 1px dashed #333; }
-        .status { color: #1DB954; margin: 10px; font-weight: bold; }
-        button { background: #1DB954; border: none; padding: 10px 20px; color: white; border-radius: 20px; cursor: pointer; margin-top: 10px; }
+        body { background: #121212; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        #reader { width: 100%; max-width: 350px; margin: auto; border-radius: 15px; overflow: hidden; border: 2px solid #1DB954; }
+        
+        /* Ključni dio: Kontejner koji reže Spotify player */
+        #player-wrapper { 
+            margin-top: 20px;
+            width: 300px; 
+            height: 80px; 
+            overflow: hidden; /* Reže sve što izlazi iz okvira */
+            position: relative;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 12px;
+            background: #282828;
+        }
+
+        #spotify-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            z-index: 1;
+        }
+
+        /* Crna traka koja prekriva samo desni dio gdje piše ime pjesme */
+        #label-mask {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 70%; /* Prekriva tekst, ostavlja Play gumb lijevo */
+            height: 100%;
+            background: #282828;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #555;
+            pointer-events: none; /* Dozvoljava klikovima da prođu "kroz" masku ako treba */
+        }
+
+        .status { color: #1DB954; margin: 10px; font-weight: bold; font-size: 14px; }
+        .hint { font-size: 12px; color: #888; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
-    <h2>BALKAN HITSTER</h2>
+    <h2 style="color:#1DB954">BALKAN HITSTER</h2>
     
     <div id="reader"></div>
+    <div id="status" class="status">Skeniraj karticu...</div>
+
+    <div class="hint">Nakon skeniranja, pritisni Play gumb lijevo:</div>
     
-    <div id="status" class="status">Skeniraj karticu za početak...</div>
-
-    <div id="player-container">
-        <div class="mask" id="mask">
-            <span>PJESMA JE SAKRIVENA</span>
-        </div>
-        <iframe id="spotify-player" src="" width="100%" height="80" frameborder="0" allow="encrypted-media"></iframe>
+    <div id="player-wrapper">
+        <div id="label-mask">PJESMA SAKRIVENA</div>
+        <iframe id="spotify-player" src="" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
     </div>
-
-    <button onclick="location.reload()">Resetuj aplikaciju</button>
 
     <script>
         const player = document.getElementById('spotify-player');
         const statusDiv = document.getElementById('status');
-        const mask = document.getElementById('mask');
 
-        function onScanSuccess(decodedText, decodedResult) {
-            // Pretpostavljamo da QR kod sadrži SAMO Spotify ID (npr. 4uLU6hMC6NoDb060pOI9SQU)
-            // Ako sadrži puni link, moramo ga "očistiti"
+        function onScanSuccess(decodedText) {
             let trackId = decodedText;
+            // Čistimo link ako je slučajno skeniran puni URL
             if(decodedText.includes("track/")) {
                 trackId = decodedText.split("track/")[1].split("?")[0];
             }
 
-            statusDiv.innerText = "Pronađena pjesma! Učitavam...";
-            mask.style.display = "flex"; // Osiguraj da je maska tu
+            statusDiv.innerText = "Pronađeno! Učitavam player...";
             
-            // Učitaj novu pjesmu bez osvježavanja stranice
+            // Postavljamo novi izvor
             player.src = `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`;
-            
-            // Onemogući skener na 5 sekundi da ne skenira istu kartu 100 puta
+
+            // Pauziramo skener da ne "poludi"
             html5QrcodeScanner.pause();
             setTimeout(() => { 
                 html5QrcodeScanner.resume(); 
                 statusDiv.innerText = "Spreman za novi sken!";
-            }, 5000);
+            }, 8000);
         }
 
         let html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
