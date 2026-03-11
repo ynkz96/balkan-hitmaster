@@ -3,67 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balkan Hitster App</title>
+    <title>Balkan Hitster - Blind App</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { background: #121212; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        body { background: #121212; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; overflow-x: hidden; }
         #reader { width: 100%; max-width: 350px; margin: auto; border-radius: 15px; overflow: hidden; border: 2px solid #1DB954; }
-        #player-wrapper { margin-top: 20px; width: 300px; height: 80px; overflow: hidden; position: relative; margin-left: auto; margin-right: auto; border-radius: 12px; background: #282828; display:none; }
-        #spotify-player { position: absolute; top: 0; left: 0; width: 100%; height: 80px; z-index: 1; }
-        #label-mask { position: absolute; top: 0; right: 0; width: 75%; height: 100%; background: #282828; z-index: 5; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #1DB954; pointer-events: none; }
-        .status { color: #1DB954; margin: 10px; font-weight: bold; font-size: 14px; }
-        #debug { font-size: 10px; color: #444; margin-top: 20px; word-break: break-all; padding: 0 20px; }
+        
+        /* KONTEJNER ZA PLAYER - Ovdje radimo magiju */
+        #player-wrapper { 
+            margin-top: 30px; 
+            width: 150px; /* Jako usko */
+            height: 150px; /* Kvadrat */
+            overflow: hidden; 
+            position: relative; 
+            margin-left: auto; 
+            margin-right: auto; 
+            border-radius: 50%; /* Play gumb će izgledati kao krug */
+            border: 4px solid #1DB954;
+            display: none;
+            background: #282828;
+        }
+
+        /* POVEĆAVAMO PLAYER DA SAKRIJEMO TEKST */
+        #spotify-player { 
+            position: absolute; 
+            width: 600px; /* Ogroman player */
+            height: 600px; 
+            top: -245px; /* Guramo ga gore da centriramo Play dugme */
+            left: -15px; /* Guramo ga lijevo */
+            z-index: 1;
+        }
+
+        /* MASKA KOJA OSIGURAVA DA SE NIŠTA NE VIDI PRI UČITAVANJU */
+        #safety-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #282828;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none; /* Dozvoljava klik kroz masku na Play dugme */
+        }
+
+        .status { color: #1DB954; margin: 10px; font-weight: bold; }
+        .instruction { font-size: 14px; color: #888; margin-bottom: 10px; }
     </style>
 </head>
 <body>
+
     <h2 style="color:#1DB954">BALKAN HITSTER</h2>
     <div id="reader"></div>
-    <div id="status" class="status">Spreman za skeniranje...</div>
+    <div id="status" class="status">Skeniraj kartu...</div>
 
-    <div id="player-wrapper">
-        <div id="label-mask">PJESMA SAKRIVENA</div>
-        <iframe id="spotify-player" src="" frameborder="0" allow="autoplay; encrypted-media;"></iframe>
+    <div id="player-area" style="display:none;">
+        <p class="instruction">Klikni u krug za PLAY:</p>
+        <div id="player-wrapper">
+            <div id="safety-overlay" id="overlay">🎵</div>
+            <iframe id="spotify-player" src="" frameborder="0" allow="autoplay; encrypted-media;"></iframe>
+        </div>
     </div>
-
-    <div id="debug"></div>
 
     <script>
         const player = document.getElementById('spotify-player');
+        const playerArea = document.getElementById('player-area');
         const wrapper = document.getElementById('player-wrapper');
         const statusDiv = document.getElementById('status');
-        const debugDiv = document.getElementById('debug');
 
         function onScanSuccess(decodedText) {
-            debugDiv.innerText = "Skenirano: " + decodedText;
             let trackId = "";
-
-            // 1. Ako skeniraš svoj GitHub link: ...?id=ID
-            if (decodedText.includes("?id=")) {
-                trackId = decodedText.split("?id=")[1].split("&")[0];
-            } 
-            // 2. Ako skeniraš direktni Spotify link: .../track/ID
-            else if (decodedText.includes("track/")) {
-                trackId = decodedText.split("track/")[1].split("?")[0];
-            } 
-            // 3. Ako skeniraš samo čisti ID
-            else {
-                trackId = decodedText.trim();
-            }
+            if (decodedText.includes("?id=")) trackId = decodedText.split("?id=")[1].split("&")[0];
+            else if (decodedText.includes("track/")) trackId = decodedText.split("track/")[1].split("?")[0];
+            else trackId = decodedText.trim();
 
             if (trackId.length > 5) {
-                statusDiv.innerText = "Pronađeno! Klikni PLAY lijevo.";
+                statusDiv.innerText = "PJESMA UČITANA!";
+                playerArea.style.display = "block";
                 wrapper.style.display = "block";
                 
-                // Ispravan URL za Spotify embed
-                player.src = "https://open.spotify.com/embed/track/" + trackId + "?utm_source=generator&theme=0";
+                // Učitavamo player
+                player.src = `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`;
 
                 html5QrcodeScanner.pause();
                 setTimeout(() => { 
                     html5QrcodeScanner.resume(); 
                     statusDiv.innerText = "Spreman za novi sken!";
-                }, 8000);
-            } else {
-                statusDiv.innerText = "Greška u kodu!";
+                }, 10000);
             }
         }
 
