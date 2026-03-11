@@ -8,86 +8,61 @@
     <style>
         body { background: #121212; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
         #reader { width: 100%; max-width: 350px; margin: auto; border-radius: 15px; overflow: hidden; border: 2px solid #1DB954; }
-        
-        /* Ključni dio: Kontejner koji reže Spotify player */
-        #player-wrapper { 
-            margin-top: 20px;
-            width: 300px; 
-            height: 80px; 
-            overflow: hidden; /* Reže sve što izlazi iz okvira */
-            position: relative;
-            margin-left: auto;
-            margin-right: auto;
-            border-radius: 12px;
-            background: #282828;
-        }
-
-        #spotify-player {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 80px;
-            z-index: 1;
-        }
-
-        /* Crna traka koja prekriva samo desni dio gdje piše ime pjesme */
-        #label-mask {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 70%; /* Prekriva tekst, ostavlja Play gumb lijevo */
-            height: 100%;
-            background: #282828;
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: #555;
-            pointer-events: none; /* Dozvoljava klikovima da prođu "kroz" masku ako treba */
-        }
-
+        #player-wrapper { margin-top: 20px; width: 300px; height: 80px; overflow: hidden; position: relative; margin-left: auto; margin-right: auto; border-radius: 12px; background: #282828; display:none; }
+        #spotify-player { position: absolute; top: 0; left: 0; width: 100%; height: 80px; z-index: 1; }
+        #label-mask { position: absolute; top: 0; right: 0; width: 75%; height: 100%; background: #282828; z-index: 5; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #1DB954; pointer-events: none; }
         .status { color: #1DB954; margin: 10px; font-weight: bold; font-size: 14px; }
-        .hint { font-size: 12px; color: #888; margin-bottom: 5px; }
+        #debug { font-size: 10px; color: #444; margin-top: 20px; }
     </style>
 </head>
 <body>
-
     <h2 style="color:#1DB954">BALKAN HITSTER</h2>
-    
     <div id="reader"></div>
-    <div id="status" class="status">Skeniraj karticu...</div>
+    <div id="status" class="status">Spreman za skeniranje...</div>
 
-    <div class="hint">Nakon skeniranja, pritisni Play gumb lijevo:</div>
-    
     <div id="player-wrapper">
         <div id="label-mask">PJESMA SAKRIVENA</div>
-        <iframe id="spotify-player" src="" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        <iframe id="spotify-player" src="" frameborder="0" allow="autoplay; encrypted-media;"></iframe>
     </div>
+
+    <div id="debug"></div>
 
     <script>
         const player = document.getElementById('spotify-player');
+        const wrapper = document.getElementById('player-wrapper');
         const statusDiv = document.getElementById('status');
+        const debugDiv = document.getElementById('debug');
 
         function onScanSuccess(decodedText) {
-            let trackId = decodedText;
-            // Čistimo link ako je slučajno skeniran puni URL
-            if(decodedText.includes("track/")) {
+            debugDiv.innerText = "Skenirano: " + decodedText;
+            
+            let trackId = "";
+
+            // LOGIKA ZA ČIŠĆENJE ID-a:
+            if (decodedText.includes("track/")) {
+                // Ako je skeniran puni link: https://open.spotify.com/track/ID?si=...
                 trackId = decodedText.split("track/")[1].split("?")[0];
+            } else {
+                // Ako je skeniran samo ID
+                trackId = decodedText.trim();
             }
 
-            statusDiv.innerText = "Pronađeno! Učitavam player...";
-            
-            // Postavljamo novi izvor
-            player.src = `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`;
+            if (trackId.length > 5) {
+                statusDiv.innerText = "Pronađeno! Klikni PLAY lijevo.";
+                wrapper.style.display = "block";
+                
+                // Finalni link koji Spotify traži
+                player.src = "https://open.spotify.com/embed/track/" + trackId + "?utm_source=generator&theme=0";
 
-            // Pauziramo skener da ne "poludi"
-            html5QrcodeScanner.pause();
-            setTimeout(() => { 
-                html5QrcodeScanner.resume(); 
-                statusDiv.innerText = "Spreman za novi sken!";
-            }, 8000);
+                // Pauza skenera
+                html5QrcodeScanner.pause();
+                setTimeout(() => { 
+                    html5QrcodeScanner.resume(); 
+                    statusDiv.innerText = "Spreman za novi sken!";
+                }, 10000);
+            } else {
+                statusDiv.innerText = "Greška: Neispravan kod!";
+            }
         }
 
         let html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
