@@ -3,76 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balkan Hitster - YT Edition</title>
+    <title>Balkan Hitster - YT Fix</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { background: #121212; color: white; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; padding: 20px; }
-        #reader { width: 100%; max-width: 350px; margin: auto; border-radius: 20px; overflow: hidden; border: 3px solid #FF0000; box-shadow: 0 0 20px rgba(255, 0, 0, 0.2); }
-        .status { color: #FF0000; margin: 20px; font-weight: bold; font-size: 18px; text-transform: uppercase; }
+        body { background: #121212; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        #reader { width: 100%; max-width: 350px; margin: auto; border-radius: 20px; overflow: hidden; border: 3px solid #FF0000; }
+        .status { color: #FF0000; margin: 15px; font-weight: bold; font-size: 16px; }
         
-        /* SKRIVENI PLAYER */
-        #yt-player-container { width: 1px; height: 1px; opacity: 0; position: absolute; pointer-events: none; }
+        /* Skriveni kontejner za YouTube */
+        #yt-hidden { width: 1px; height: 1px; opacity: 0; position: absolute; }
         
-        .btn { background: #FF0000; border: none; padding: 15px 40px; color: white; border-radius: 50px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 20px; display: none; transition: 0.3s; }
-        .btn:active { transform: scale(0.95); background: #b30000; }
-        #debug { font-size: 10px; color: #333; margin-top: 30px; }
+        .action-btn { 
+            background: #FF0000; border: none; padding: 20px 40px; color: white; 
+            border-radius: 50px; font-weight: bold; font-size: 18px; cursor: pointer; 
+            margin-top: 20px; display: none; width: 80%;
+        }
+        #stop-btn { background: #444; margin-top: 15px; }
     </style>
 </head>
 <body>
 
-    <h2 style="color:#FF0000; letter-spacing: 2px;">BALKAN <span style="color:white">HITSTER</span></h2>
+    <h2 style="color:#FF0000">BALKAN <span style="color:white">HITSTER</span></h2>
     
     <div id="reader"></div>
-    <div id="status">SPREMAN ZA SKENIRANJE</div>
+    <div id="status" class="status">SKENIRAJ KARTICU</div>
 
-    <div id="yt-player-container">
-        <div id="player"></div>
-    </div>
+    <div id="yt-hidden"></div>
 
-    <button id="stop-btn" class="btn" onclick="stopMusic()">STOP / SLEDEĆA</button>
-
-    <div id="debug"></div>
+    <button id="play-btn" class="action-btn">▶ PUSTI MUZIKU</button>
+    <button id="stop-btn" class="action-btn">❌ STOP / SLEDEĆA</button>
 
     <script>
-        let statusDiv = document.getElementById('status');
-        let stopBtn = document.getElementById('stop-btn');
-        let debugDiv = document.getElementById('debug');
+        let currentId = "";
+        const statusDiv = document.getElementById('status');
+        const playBtn = document.getElementById('play-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const ytContainer = document.getElementById('yt-hidden');
 
         function onScanSuccess(decodedText) {
-            debugDiv.innerText = "Skeniran ID: " + decodedText;
-            
-            // Očistimo ID u slučaju da skener uhvati razmake
-            let videoId = decodedText.trim();
+            // Uzimamo samo ID (ako je skeniran pun link, čistimo ga)
+            currentId = decodedText.trim();
+            if(currentId.includes("id=")) currentId = currentId.split("id=")[1];
 
-            statusDiv.innerText = "UČITAVAM MUZIKU...";
+            statusDiv.innerText = "PESMA PRONAĐENA!";
+            playBtn.style.display = "inline-block"; // Pokazujemo dugme za play
             
-            // Ubacujemo YouTube iframe sa autoplay-om
-            // Koristimo API embed format koji najbolje radi na mobilnim uređajima
-            document.getElementById('player').innerHTML = `
-                <iframe width="200" height="200" 
-                src="https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&disablekb=1&modestbranding=1" 
-                frameborder="0" allow="autoplay; encrypted-media"></iframe>`;
-
-            stopBtn.style.display = "inline-block";
-            statusDiv.innerText = "MUZIKA SVIRA... (Blind Test)";
-            
-            // Pauziramo skener da ne bi stalno skenirao istu kartu
-            html5QrcodeScanner.pause();
+            html5QrcodeScanner.pause(); // Pauziramo kameru
         }
+
+        // KLJUČNI DEO: Korisnik mora kliknuti da bi browser dozvolio zvuk
+        playBtn.addEventListener('click', function() {
+            ytContainer.innerHTML = `
+                <iframe width="100" height="100" 
+                src="https://www.youtube.com/embed/${currentId}?autoplay=1" 
+                allow="autoplay; encrypted-media"></iframe>`;
+            
+            statusDiv.innerText = "MUZIKA SVIRA...";
+            playBtn.style.display = "none";
+            stopBtn.style.display = "inline-block";
+        });
 
         function stopMusic() {
-            document.getElementById('player').innerHTML = ""; // Brišemo player (zaustavlja zvuk)
+            ytContainer.innerHTML = ""; // Brišemo player
             stopBtn.style.display = "none";
             statusDiv.innerText = "SKENIRAJ NOVU KARTU";
-            html5QrcodeScanner.resume(); // Vraćamo skener u život
+            html5QrcodeScanner.resume(); // Ponovo palimo kameru
         }
 
-        // Inicijalizacija skenera
-        let html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
-            fps: 10, 
-            qrbox: {width: 250, height: 250},
-            aspectRatio: 1.0
-        });
+        let html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
         html5QrcodeScanner.render(onScanSuccess);
     </script>
 </body>
