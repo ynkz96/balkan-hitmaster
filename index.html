@@ -9,8 +9,10 @@
     <meta name="theme-color" content="#ff4d4d">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <script src="https://unpkg.com/html5-qrcode"></script>
+    
     <style>
         :root {
             --primary: #ff4d4d;
@@ -45,7 +47,7 @@
             justify-content: center;
             padding: 30px;
             text-align: center;
-            animation: fadeIn 0.5s ease;
+            animation: fadeIn 0.4s ease;
         }
 
         .active { display: flex; }
@@ -66,7 +68,6 @@
         /* --- MENU PAGE --- */
         .logo-area h1 { font-size: 34px; font-weight: 900; letter-spacing: -1px; margin: 0; text-transform: uppercase; }
         .logo-accent { color: var(--primary); }
-        
         .disclaimer {
             position: absolute;
             bottom: 30px;
@@ -82,13 +83,11 @@
             border-radius: 24px; overflow: hidden; 
             border: 2px solid var(--glass);
             background: #000;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
         }
 
         /* --- PLAYER PAGE (VINYL) --- */
         .vinyl-container {
             width: 260px; height: 260px;
-            background: #111;
             border-radius: 50%;
             border: 12px solid #1a1a1a;
             position: relative;
@@ -98,9 +97,7 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.8);
             background: repeating-radial-gradient(#111, #111 2px, #181818 3px, #111 4px);
         }
-
         .vinyl-playing { animation: spin 3s linear infinite; }
-
         .vinyl-label {
             width: 90px; height: 90px;
             background: var(--primary);
@@ -110,7 +107,6 @@
             align-items: center;
             justify-content: center;
         }
-
         .vinyl-center { width: 10px; height: 10px; background: #000; border-radius: 50%; }
 
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -128,10 +124,8 @@
             letter-spacing: 2px;
             cursor: pointer;
             box-shadow: 0 10px 25px rgba(255, 77, 77, 0.4);
-            transition: 0.3s;
             margin-top: 35px;
         }
-        .btn:active { transform: scale(0.92); box-shadow: 0 5px 15px rgba(255, 77, 77, 0.2); }
         .btn-secondary { background: var(--glass); box-shadow: none; border: 1px solid rgba(255,255,255,0.1); margin-top: 20px; }
 
         #yt-hidden { position: absolute; left: -9999px; }
@@ -149,8 +143,7 @@
             <h1>Balkan <span class="logo-accent">HitMaster</span></h1>
             <p style="opacity: 0.5; margin-top: 8px; letter-spacing: 5px; font-size: 11px;">PARTY GAME</p>
         </div>
-        <button class="btn" onclick="goToScanner()">Hajde da ludujemo</button>
-        
+        <button class="btn" onclick="initScanner()">Hajde da ludujemo</button>
         <div class="disclaimer">
             Aplikacija samo olakšava pretragu javno dostupnog sadržaja na YouTube/Spotify platformama. Autor ne posjeduje prava na muziku. App je otvorenog koda i dostupan free na GitHub-u.
         </div>
@@ -159,14 +152,12 @@
     <div id="scanner-page" class="page">
         <p style="margin-bottom: 25px; font-weight: 800; color: var(--primary); letter-spacing: 2px;">SKENIRAJ KARTU</p>
         <div id="reader"></div>
-        <button class="btn btn-secondary" onclick="showPage('menu-page')">Odustani</button>
+        <button class="btn btn-secondary" onclick="stopScannerAndBack()">Odustani</button>
     </div>
 
     <div id="player-page" class="page">
         <div id="vinyl" class="vinyl-container">
-            <div class="vinyl-label">
-                <div class="vinyl-center"></div>
-            </div>
+            <div class="vinyl-label"><div class="vinyl-center"></div></div>
         </div>
         <p id="player-status" style="margin-top: 35px; opacity: 0.6; letter-spacing: 2px; font-size: 14px;">PRIPREMA...</p>
         <button class="btn" id="play-btn" onclick="startPlayback()">▶ Pusti muziku</button>
@@ -176,17 +167,14 @@
     <div id="yt-hidden"></div>
 
     <script>
-let html5QrCode; // Koristimo čistu verziju bez UI-a
-        const statusDiv = document.getElementById('status');
-        const playBtn = document.getElementById('play-btn');
-        const stopBtn = document.getElementById('next-btn');
-        const startCamBtn = document.getElementById('start-camera-btn');
-        const ytContainer = document.getElementById('yt-hidden');
+        let currentId = "";
+        let html5QrCode;
 
         window.addEventListener('load', () => {
-            setTimeout(() => {
-                showPage('menu-page');
-            }, 2500);
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js');
+            }
+            setTimeout(() => { showPage('menu-page'); }, 2500);
         });
 
         function showPage(pageId) {
@@ -194,26 +182,13 @@ let html5QrCode; // Koristimo čistu verziju bez UI-a
             document.getElementById(pageId).classList.add('active');
         }
 
-        // --- NOVA FUNKCIJA ZA SKENER BEZ UI-a ---
         function initScanner() {
-            startCamBtn.style.display = "none";
-            statusDiv.innerText = "Pokrećem kameru...";
             showPage('scanner-page');
-
-            // Kreiramo instancu na "reader" div
             html5QrCode = new Html5Qrcode("reader");
-
             const config = { fps: 20, qrbox: { width: 250, height: 250 } };
-
-            // facingMode: "environment" prisiljava zadnju kameru
-            html5QrCode.start(
-                { facingMode: "environment" }, 
-                config, 
-                onScanSuccess
-            ).catch(err => {
-                statusDiv.innerText = "Greška: Provjeri dozvole kamere.";
-                console.error(err);
-            });
+            
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+                .catch(err => { console.error("Kamera error:", err); });
         }
 
         function onScanSuccess(decodedText) {
@@ -221,39 +196,37 @@ let html5QrCode; // Koristimo čistu verziju bez UI-a
             if(currentId.includes("v=")) currentId = currentId.split("v=")[1].substring(0,11);
             
             if(currentId.length >= 11) {
-                // Odmah gasimo kameru da se ne vidi "Stop scanning" i da štedimo bateriju
                 html5QrCode.stop().then(() => {
                     showPage('player-page');
                     document.getElementById('play-btn').style.display = "block";
-                    stopBtn.style.display = "none";
-                    document.getElementById('player-status').innerText = "KARTA SPREMNA";
-                    document.getElementById('vinyl').classList.remove('vinyl-playing');
+                    document.getElementById('next-btn').style.display = "none";
+                    document.getElementById('player-status').innerText = "KARTA OČITANA";
                     if (navigator.vibrate) navigator.vibrate(100);
                 });
             }
         }
 
+        function stopScannerAndBack() {
+            if(html5QrCode) {
+                html5QrCode.stop().then(() => { showPage('menu-page'); });
+            } else {
+                showPage('menu-page');
+            }
+        }
+
         function startPlayback() {
-            ytContainer.innerHTML = `<iframe width="100" height="100" src="https://www.youtube.com/embed/${currentId}?autoplay=1" allow="autoplay"></iframe>`;
+            document.getElementById('yt-hidden').innerHTML = `<iframe width="100" height="100" src="https://www.youtube.com/embed/${currentId}?autoplay=1" allow="autoplay"></iframe>`;
             document.getElementById('play-btn').style.display = "none";
-            stopBtn.style.display = "block";
+            document.getElementById('next-btn').style.display = "block";
             document.getElementById('player-status').innerText = "MUZIKA SVIRA...";
             document.getElementById('vinyl').classList.add('vinyl-playing');
         }
 
         function nextCard() {
-            ytContainer.innerHTML = ""; 
+            document.getElementById('yt-hidden').innerHTML = ""; 
             document.getElementById('vinyl').classList.remove('vinyl-playing');
-            // Ponovo pokrećemo skener za iduću kartu
-            initScanner(); 
-        }
-
-        function goToScanner() {
             initScanner();
         }
-        if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
-}
     </script>
 </body>
 </html>
