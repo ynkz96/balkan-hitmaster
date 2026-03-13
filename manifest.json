@@ -5,12 +5,19 @@
   "display": "standalone",
   "background_color": "#0a0a0b",
   "theme_color": "#ff4d4d",
-  "description": "Muzička party igra za ljubitelje balkanskih hitova.",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/175/175314.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/175/175314.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
