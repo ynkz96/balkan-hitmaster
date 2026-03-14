@@ -15,12 +15,15 @@
             --secondary: #222;
         }
 
+        * { box-sizing: border-box; }
+
         body {
             background-color: var(--bg);
             color: var(--text);
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             margin: 0;
             scroll-behavior: smooth;
+            line-height: 1.6;
         }
 
         /* Vinyl Texture Overlay */
@@ -34,27 +37,55 @@
             z-index: 1;
         }
 
-        /* Navigation */
+        /* --- NAVIGACIJA (MOBILE OPTIMIZED) --- */
         nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 8%;
-            background: rgba(10, 10, 11, 0.95);
-            backdrop-filter: blur(10px);
+            padding: 15px 8%;
+            background: rgba(10, 10, 11, 0.98);
+            backdrop-filter: blur(15px);
             position: sticky;
             top: 0;
             z-index: 100;
             border-bottom: 1px solid var(--secondary);
         }
 
-        .logo { font-weight: 900; font-size: 1.6rem; color: var(--accent); letter-spacing: 2px; text-shadow: 0 0 10px rgba(255, 77, 77, 0.3); }
-        .nav-links a { color: white; text-decoration: none; margin-left: 25px; font-size: 0.9rem; font-weight: 500; transition: 0.3s; }
+        .logo { 
+            font-weight: 900; 
+            font-size: 1.4rem; 
+            color: var(--accent); 
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-links a { 
+            color: white; 
+            text-decoration: none; 
+            font-size: 0.9rem; 
+            font-weight: 500; 
+            transition: 0.3s; 
+        }
+
         .nav-links a:hover { color: var(--accent); }
 
-        /* Hero */
+        .btn-app {
+            color: var(--accent) !important;
+            border: 1px solid var(--accent);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: bold !important;
+        }
+
+        /* --- HERO SECTION --- */
         header {
-            height: 90vh;
+            height: 85vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -65,14 +96,14 @@
             z-index: 2;
         }
 
-        h1 { font-size: clamp(3rem, 10vw, 5rem); margin: 0; text-transform: uppercase; line-height: 0.9; }
-        h1 span { color: var(--accent); text-shadow: 0 0 30px rgba(255, 77, 77, 0.6); }
-        .subtitle { font-size: 1.2rem; opacity: 0.7; max-width: 600px; margin: 30px 0; line-height: 1.6; }
+        h1 { font-size: clamp(2.5rem, 8vw, 5rem); margin: 0; text-transform: uppercase; line-height: 1; }
+        h1 span { color: var(--accent); text-shadow: 0 0 30px rgba(255, 77, 77, 0.5); }
+        .subtitle { font-size: clamp(1rem, 4vw, 1.2rem); opacity: 0.7; max-width: 600px; margin: 25px 0; }
 
         .btn-cta {
             background: var(--accent);
             color: white;
-            padding: 18px 45px;
+            padding: 18px 40px;
             border-radius: 50px;
             text-decoration: none;
             font-weight: bold;
@@ -80,72 +111,83 @@
             box-shadow: 0 10px 30px rgba(255, 77, 77, 0.4);
             transition: 0.3s;
         }
-        .btn-cta:hover { transform: translateY(-5px); box-shadow: 0 15px 40px var(--accent); }
 
-        /* Sections */
-        section { padding: 100px 10%; position: relative; z-index: 2; }
-        h2 { text-align: center; font-size: 2.5rem; margin-bottom: 60px; text-transform: uppercase; }
+        /* --- SECTIONS --- */
+        section { padding: 80px 8%; position: relative; z-index: 2; }
+        h2 { text-align: center; font-size: clamp(1.8rem, 5vw, 2.5rem); margin-bottom: 50px; text-transform: uppercase; }
         h2 span { color: var(--accent); }
 
         /* Features */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
         .feature-card {
             background: var(--card-bg);
             padding: 40px;
             border-radius: 24px;
             border: 1px solid #222;
             text-align: center;
-            transition: 0.4s;
+            transition: 0.3s;
         }
-        .feature-card:hover { border-color: var(--accent); transform: scale(1.02); }
-        .feature-card i { font-size: 3.5rem; color: var(--accent); margin-bottom: 25px; }
+        .feature-card i { font-size: 3rem; color: var(--accent); margin-bottom: 20px; }
 
         /* Song Search Table */
         .search-container {
             background: var(--card-bg);
-            padding: 30px;
+            padding: 20px;
             border-radius: 24px;
             border: 1px solid var(--secondary);
-            margin-top: 40px;
         }
         #songSearch {
             width: 100%;
-            padding: 15px 20px;
+            padding: 15px;
             background: #000;
             border: 1px solid #333;
             color: white;
             border-radius: 12px;
-            font-size: 1rem;
             margin-bottom: 20px;
-            box-sizing: border-box;
         }
-        #songSearch:focus { outline: none; border-color: var(--accent); }
-        
         .table-wrapper { max-height: 400px; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th { color: var(--accent); padding: 15px; border-bottom: 2px solid var(--secondary); position: sticky; top: 0; background: var(--card-bg); }
-        td { padding: 15px; border-bottom: 1px solid #222; opacity: 0.9; }
-        tr:hover td { background: rgba(255, 77, 77, 0.05); }
+        table { width: 100%; border-collapse: collapse; }
+        th { color: var(--accent); text-align: left; padding: 12px; border-bottom: 2px solid var(--secondary); position: sticky; top: 0; background: var(--card-bg); }
+        td { padding: 12px; border-bottom: 1px solid #222; font-size: 0.9rem; }
 
         /* Form */
         .order-box {
             max-width: 600px;
             margin: 0 auto;
             background: var(--card-bg);
-            padding: 40px;
+            padding: 30px;
             border-radius: 24px;
             border: 1px solid var(--secondary);
         }
-        .form-group { margin-bottom: 15px; }
         input, select, textarea {
-            width: 100%; padding: 14px; background: #000; border: 1px solid #333; color: white; border-radius: 10px; box-sizing: border-box;
+            width: 100%; padding: 14px; background: #000; border: 1px solid #333; color: white; border-radius: 10px; margin-bottom: 15px;
         }
         .submit-btn {
             background: var(--accent); width: 100%; border: none; padding: 18px; color: white;
-            font-weight: bold; font-size: 1rem; cursor: pointer; border-radius: 10px; margin-top: 20px;
+            font-weight: bold; cursor: pointer; border-radius: 10px;
         }
 
-        footer { padding: 60px; text-align: center; opacity: 0.4; font-size: 0.9rem; border-top: 1px solid var(--secondary); }
+        footer { padding: 50px; text-align: center; opacity: 0.5; font-size: 0.85rem; border-top: 1px solid var(--secondary); }
+
+        /* --- MEDIA QUERIES ZA MOBITELE --- */
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+                gap: 15px;
+                padding: 20px 5%;
+            }
+            .nav-links {
+                width: 100%;
+                justify-content: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .nav-links a { font-size: 0.8rem; }
+            .btn-app { width: 100%; text-align: center; order: -1; margin-bottom: 5px; }
+            
+            section { padding: 60px 5%; }
+            .grid { gap: 20px; }
+        }
     </style>
 </head>
 <body>
@@ -158,14 +200,14 @@
             <a href="#pravila">Pravila</a>
             <a href="#pjesme">Pjesme</a>
             <a href="#naruci">Naruči</a>
-            <a href="app.html" style="color:var(--accent); border: 1px solid var(--accent); padding: 8px 15px; border-radius: 20px;">IGRAJ APP</a>
+            <a href="app.html" class="btn-app">IGRAJ APP</a>
         </div>
     </nav>
 
     <header>
         <h1>BALKAN<br><span>HITMASTER</span></h1>
-        <p class="subtitle">Interaktivna kartaška igra koja testira tvoje muzičko znanje kroz decenije najvećih regionalnih hitova. Skeniraj, pogodi godinu, pobijedi!</p>
-        <a href="#naruci" class="btn-cta">NARUČI SVOJ ŠPIL</a>
+        <p class="subtitle">Muzička kartaška igra koja spaja generacije. Skeniraj QR kod, slušaj hit i pogodi godinu izdanja!</p>
+        <a href="#naruci" class="btn-cta">KUPI SVOJ ŠPIL</a>
     </header>
 
     <section id="pravila">
@@ -174,26 +216,25 @@
             <div class="feature-card">
                 <i class="fas fa-qrcode"></i>
                 <h3>SKENIRAJ</h3>
-                <p>Koristi našu web aplikaciju da skeniraš QR kod na poleđini kartice.</p>
+                <p>Otvori aplikaciju i skeniraj QR kod sa poleđine bilo koje kartice.</p>
             </div>
             <div class="feature-card">
                 <i class="fas fa-play-circle"></i>
                 <h3>SLUŠAJ</h3>
-                <p>Pjesma se automatski učitava. Slušaj ritam i prepoznaj izvođača.</p>
+                <p>Uživaj u hitu koji se automatski učitava sa YouTube-a.</p>
             </div>
             <div class="feature-card">
-                <i class="fas fa-history"></i>
+                <i class="fas fa-trophy"></i>
                 <h3>POREDAJ</h3>
-                <p>Postavi kartu u svoj hronološki niz. Onaj ko prvi poreda 10 karata je pobjednik!</p>
+                <p>Stavi kartu u svoj hronološki niz i postani gospodar Balkana!</p>
             </div>
         </div>
     </section>
 
     <section id="pjesme">
         <h2>LISTA <span>PJESAMA</span></h2>
-        <p style="text-align: center; opacity: 0.7; margin-bottom: 30px;">Pretraži bazu od 300+ pjesama koje dolaze u paketu.</p>
         <div class="search-container">
-            <input type="text" id="songSearch" placeholder="🔍 Pretraži po izvođaču ili nazivu pjesme..." onkeyup="filterSongs()">
+            <input type="text" id="songSearch" placeholder="🔍 Pretraži izvođača ili pjesmu..." onkeyup="filterSongs()">
             <div class="table-wrapper">
                 <table id="songTable">
                     <thead>
@@ -202,47 +243,41 @@
                             <th>Pjesma</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody">
-                        </tbody>
+                    <tbody id="tableBody"></tbody>
                 </table>
             </div>
         </div>
     </section>
 
     <section id="naruci">
-        <h2>REZERVIŠI <span>SVOJ ŠPIL</span></h2>
+        <h2>REZERVIŠI <span>ŠPIL</span></h2>
         <div class="order-box">
             <form action="https://formspree.io/f/tvoj-id" method="POST">
-                <div class="form-group"><input type="text" name="name" placeholder="Ime i Prezime" required></div>
-                <div class="form-group"><input type="email" name="email" placeholder="Email Adresa" required></div>
-                <div class="form-group"><input type="text" name="address" placeholder="Grad i Adresa za dostavu" required></div>
-                <div class="form-group">
-                    <select name="paket">
-                        <option value="Standard">Standard Pack (300 pjesama) - 35 KM</option>
-                        <option value="Premium">Premium Pack (450 pjesama + Kutija) - 55 KM</option>
-                    </select>
-                </div>
-                <button type="submit" class="submit-btn">POŠALJI NARUDŽBU</button>
+                <input type="text" name="name" placeholder="Ime i Prezime" required>
+                <input type="email" name="email" placeholder="Email Adresa" required>
+                <input type="text" name="address" placeholder="Grad i Adresa" required>
+                <select name="paket">
+                    <option value="Standard">Standard Pack (300 pjesama) - 35 KM</option>
+                    <option value="Premium">Premium Pack (450 pjesama + Kutija) - 55 KM</option>
+                </select>
+                <button type="submit" class="submit-btn">NARUČI ODMAH</button>
             </form>
-            <p style="font-size: 0.8rem; text-align: center; margin-top: 15px; opacity: 0.5;">* Plaćanje pouzećem pri preuzimanju pošiljke.</p>
         </div>
     </section>
 
     <footer>
-        &copy; 2026 Balkan HitMaster. Sva prava zadržana. <br>
-        Crafted for music lovers by <strong>Anes Zrno</strong>
+        &copy; 2026 Balkan HitMaster | Autor: Anes Zrno <br>
+        Sve pjesme su vlasništvo njihovih autora.
     </footer>
 
     <script>
-        // UČITAVANJE PJESAMA IZ LISTA.CSV
+        // Učitavanje iz CSV-a
         Papa.parse("lista.csv", {
             download: true,
             header: true,
             complete: function(results) {
-                let data = results.data;
                 let tableBody = document.getElementById("tableBody");
-                
-                data.forEach(row => {
+                results.data.forEach(row => {
                     if(row.Izvođač && row.Pjesma) {
                         let tr = document.createElement("tr");
                         tr.innerHTML = `<td>${row.Izvođač}</td><td>${row.Pjesma}</td>`;
@@ -252,25 +287,13 @@
             }
         });
 
-        // FILTRIRANJE TABELE
+        // Search Filter
         function filterSongs() {
-            let input = document.getElementById("songSearch");
-            let filter = input.value.toLowerCase();
-            let table = document.getElementById("songTable");
-            let tr = table.getElementsByTagName("tr");
-
+            let filter = document.getElementById("songSearch").value.toLowerCase();
+            let tr = document.getElementById("songTable").getElementsByTagName("tr");
             for (let i = 1; i < tr.length; i++) {
-                let tdArtist = tr[i].getElementsByTagName("td")[0];
-                let tdSong = tr[i].getElementsByTagName("td")[1];
-                if (tdArtist || tdSong) {
-                    let textArtist = tdArtist.textContent || tdArtist.innerText;
-                    let textSong = tdSong.textContent || tdSong.innerText;
-                    if (textArtist.toLowerCase().indexOf(filter) > -1 || textSong.toLowerCase().indexOf(filter) > -1) {
-                        tr[i].style.display = "";
-                    } else {
-                        tr[i].style.display = "none";
-                    }
-                }
+                let text = tr[i].textContent.toLowerCase();
+                tr[i].style.display = text.includes(filter) ? "" : "none";
             }
         }
     </script>
