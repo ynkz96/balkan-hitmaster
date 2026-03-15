@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HitMaster Checker iOS</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <style>
+        body { background: #0A0A0B; color: #eee; font-family: sans-serif; text-align: center; padding: 20px; }
+        .header { color: #FF4D4D; font-weight: bold; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        #video-preview { width: 100%; border-radius: 15px; border: 2px solid #333; margin-bottom: 20px; }
+        .result-card { background: #161618; padding: 20px; border-radius: 15px; border: 1px solid #FF4D4D; display: none; }
+        .yt-link { color: #FF4D4D; word-break: break-all; text-decoration: none; display: block; margin-top: 10px; font-weight: bold; }
+        #startBtn { background: #333; color: white; border: none; padding: 15px 30px; border-radius: 10px; width: 100%; }
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header">📋 VERIFIKATOR POLEĐINA <span style="font-size: 0.7rem;">iOS</span></div>
+    
+    <video id="video-preview" playsinline muted autoplay></video>
+    <canvas id="canvas"></canvas>
+
+    <button id="startBtn">AKTIVIRAJ KAMERU</button>
+
+    <div id="result" class="result-card">
+        <div style="font-size: 0.8rem; opacity: 0.6;">Očitani YouTube ID:</div>
+        <div id="video-id" style="font-size: 1.5rem; font-weight: bold; margin: 10px 0;"></div>
+        <a id="video-link" class="yt-link" target="_blank">OTVORI VIDEO ▶️</a>
+        <p style="font-size: 0.7rem; margin-top: 15px;">Skener će se resetovati za 3 sekunde...</p>
+    </div>
+
+    <script>
+        const video = document.getElementById('video-preview');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const resultCard = document.getElementById('result');
+        const idDisplay = document.getElementById('video-id');
+        const linkDisplay = document.getElementById('video-link');
+        const startBtn = document.getElementById('startBtn');
+
+        let isScanning = false;
+
+        startBtn.onclick = () => {
+            startBtn.style.display = 'none';
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(stream => {
+                    video.srcObject = stream;
+                    isScanning = true;
+                    requestAnimationFrame(scan);
+                });
+        };
+
+        function scan() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA && isScanning) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Grayscale filter za crvene kodove
+                let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                let data = imageData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    let brightness = (data[i] + data[i+1] + data[i+2]) / 3;
+                    data[i] = data[i+1] = data[i+2] = brightness < 100 ? 0 : 255;
+                }
+                
+                const code = jsQR(data, canvas.width, canvas.height);
+                if (code) {
+                    isScanning = false;
+                    showResult(code.data);
+                }
+            }
+            if (isScanning) requestAnimationFrame(scan);
+        }
+
+        function showResult(data) {
+            const vid = data.match(/[a-zA-Z0-9_-]{11}/);
+            const finalId = vid ? vid[0] : data;
+            
+            idDisplay.innerText = finalId;
+            linkDisplay.href = `https://www.youtube.com/watch?v=${finalId}`;
+            resultCard.style.display = 'block';
+
+            setTimeout(() => {
+                resultCard.style.display = 'none';
+                isScanning = true;
+                requestAnimationFrame(scan);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
