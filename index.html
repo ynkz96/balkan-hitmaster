@@ -2,8 +2,8 @@
 <html lang="hr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balkan HitMaster | Muzička Kartaška Igra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Balkan HitMaster | Postani Legenda Kafane</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
@@ -15,184 +15,106 @@
             --secondary: #222;
         }
 
-        * { box-sizing: border-box; }
-
         body {
             background-color: var(--bg);
             color: var(--text);
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             margin: 0;
             scroll-behavior: smooth;
-            line-height: 1.6;
+            overflow-x: hidden;
         }
 
-        /* Vinyl Texture Overlay */
-        .vinyl-texture {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: repeating-radial-gradient(circle at center, #111 0, #111 1px, transparent 2px, transparent 100%);
-            background-size: 5px 5px;
-            opacity: 0.15;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        /* --- NAVIGACIJA (MOBILE OPTIMIZED) --- */
+        /* --- MOBILNA NAVIGACIJA --- */
         nav {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            padding: 15px 8%;
+            padding: 15px 5%;
             background: rgba(10, 10, 11, 0.98);
             backdrop-filter: blur(15px);
             position: sticky;
             top: 0;
             z-index: 100;
             border-bottom: 1px solid var(--secondary);
+            gap: 10px;
         }
 
-        .logo { 
-            font-weight: 900; 
-            font-size: 1.4rem; 
-            color: var(--accent); 
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
+        .logo { font-weight: 900; font-size: 1.3rem; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; }
+        
         .nav-links {
             display: flex;
-            align-items: center;
-            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            width: 100%;
         }
 
         .nav-links a { 
             color: white; 
             text-decoration: none; 
-            font-size: 0.9rem; 
-            font-weight: 500; 
-            transition: 0.3s; 
+            font-size: 0.75rem; 
+            font-weight: 600; 
+            text-transform: uppercase;
+            padding: 5px;
         }
 
-        .nav-links a:hover { color: var(--accent); }
-
-        .btn-app {
+        .btn-app-main {
             color: var(--accent) !important;
             border: 1px solid var(--accent);
-            padding: 8px 16px;
-            border-radius: 12px;
-            font-weight: bold !important;
+            padding: 6px 15px !important;
+            border-radius: 20px;
+            background: rgba(255, 77, 77, 0.1);
         }
 
-        /* --- HERO SECTION --- */
+        /* --- HERO --- */
         header {
-            height: 85vh;
+            height: 80vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
             padding: 0 20px;
-            position: relative;
-            z-index: 2;
         }
 
-        h1 { font-size: clamp(2.5rem, 8vw, 5rem); margin: 0; text-transform: uppercase; line-height: 1; }
-        h1 span { color: var(--accent); text-shadow: 0 0 30px rgba(255, 77, 77, 0.5); }
-        .subtitle { font-size: clamp(1rem, 4vw, 1.2rem); opacity: 0.7; max-width: 600px; margin: 25px 0; }
+        h1 { font-size: clamp(2.5rem, 8vw, 5rem); margin: 0; text-transform: uppercase; line-height: 0.9; }
+        h1 span { color: var(--accent); text-shadow: 0 0 20px rgba(255, 77, 77, 0.5); }
+        .subtitle { font-size: 1rem; opacity: 0.8; max-width: 500px; margin: 25px 0; line-height: 1.5; }
 
-        .btn-cta {
-            background: var(--accent);
-            color: white;
-            padding: 18px 40px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 1.1rem;
-            box-shadow: 0 10px 30px rgba(255, 77, 77, 0.4);
-            transition: 0.3s;
+        /* --- PRAVILA SEKCIJA --- */
+        section { padding: 60px 8%; }
+        h2 { text-align: center; font-size: 2rem; color: var(--accent); margin-bottom: 40px; text-transform: uppercase; }
+        
+        .rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .rule-box { background: var(--card-bg); padding: 25px; border-radius: 20px; border: 1px solid var(--secondary); }
+        .rule-box h3 { color: var(--accent); margin-top: 0; display: flex; align-items: center; gap: 10px; }
+        .rule-box ul { padding-left: 20px; opacity: 0.9; font-size: 0.9rem; line-height: 1.6; }
+        
+        .token-item { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 8px 0; 
+            border-bottom: 1px solid #222; 
+            font-size: 0.85rem;
         }
+        .token-cost { color: var(--accent); font-weight: bold; }
 
-        /* --- SECTIONS --- */
-        section { padding: 80px 8%; position: relative; z-index: 2; }
-        h2 { text-align: center; font-size: clamp(1.8rem, 5vw, 2.5rem); margin-bottom: 50px; text-transform: uppercase; }
-        h2 span { color: var(--accent); }
+        /* --- TABELA I FORMA --- */
+        .search-bar { width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: white; border-radius: 10px; margin-bottom: 20px; }
+        .table-scroll { max-height: 300px; overflow-y: auto; border: 1px solid #222; border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        td, th { padding: 12px; text-align: left; border-bottom: 1px solid #111; }
+        th { background: #111; color: var(--accent); position: sticky; top: 0; }
 
-        /* Features */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
-        .feature-card {
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 24px;
-            border: 1px solid #222;
-            text-align: center;
-            transition: 0.3s;
-        }
-        .feature-card i { font-size: 3rem; color: var(--accent); margin-bottom: 20px; }
+        .order-card { background: var(--card-bg); padding: 30px; border-radius: 25px; max-width: 500px; margin: 0 auto; border: 1px solid var(--accent); }
+        .order-card input, .order-card select { width: 100%; padding: 12px; margin: 8px 0; background: #000; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box; }
+        .btn-order { width: 100%; padding: 15px; background: var(--accent); border: none; color: white; font-weight: bold; border-radius: 8px; margin-top: 15px; cursor: pointer; }
 
-        /* Song Search Table */
-        .search-container {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 24px;
-            border: 1px solid var(--secondary);
-        }
-        #songSearch {
-            width: 100%;
-            padding: 15px;
-            background: #000;
-            border: 1px solid #333;
-            color: white;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-        .table-wrapper { max-height: 400px; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th { color: var(--accent); text-align: left; padding: 12px; border-bottom: 2px solid var(--secondary); position: sticky; top: 0; background: var(--card-bg); }
-        td { padding: 12px; border-bottom: 1px solid #222; font-size: 0.9rem; }
+        footer { text-align: center; padding: 40px; opacity: 0.4; font-size: 0.75rem; border-top: 1px solid #222; }
 
-        /* Form */
-        .order-box {
-            max-width: 600px;
-            margin: 0 auto;
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 24px;
-            border: 1px solid var(--secondary);
-        }
-        input, select, textarea {
-            width: 100%; padding: 14px; background: #000; border: 1px solid #333; color: white; border-radius: 10px; margin-bottom: 15px;
-        }
-        .submit-btn {
-            background: var(--accent); width: 100%; border: none; padding: 18px; color: white;
-            font-weight: bold; cursor: pointer; border-radius: 10px;
-        }
-
-        footer { padding: 50px; text-align: center; opacity: 0.5; font-size: 0.85rem; border-top: 1px solid var(--secondary); }
-
-        /* --- MEDIA QUERIES ZA MOBITELE --- */
-        @media (max-width: 768px) {
-            nav {
-                flex-direction: column;
-                gap: 15px;
-                padding: 20px 5%;
-            }
-            .nav-links {
-                width: 100%;
-                justify-content: center;
-                gap: 12px;
-                flex-wrap: wrap;
-            }
-            .nav-links a { font-size: 0.8rem; }
-            .btn-app { width: 100%; text-align: center; order: -1; margin-bottom: 5px; }
-            
-            section { padding: 60px 5%; }
-            .grid { gap: 20px; }
-        }
     </style>
 </head>
 <body>
-
-    <div class="vinyl-texture"></div>
 
     <nav>
         <div class="logo">BALKAN HITMASTER</div>
@@ -200,102 +122,49 @@
             <a href="#pravila">Pravila</a>
             <a href="#pjesme">Pjesme</a>
             <a href="#naruci">Naruči</a>
-            <a href="app.html" class="btn-app">IGRAJ APP</a>
+            <a href="javascript:void(0)" onclick="launchApp()" class="btn-app-main">IGRAJ APP</a>
         </div>
     </nav>
 
     <header>
         <h1>BALKAN<br><span>HITMASTER</span></h1>
-        <p class="subtitle">Muzička kartaška igra koja spaja generacije. Skeniraj QR kod, slušaj hit i pogodi godinu izdanja!</p>
-        <a href="#naruci" class="btn-cta">KUPI SVOJ ŠPIL</a>
+        <p class="subtitle">Postani gospodar kafane i estradna legenda! Više od 300 hitova koje moraš složiti u savršen Timeline.</p>
+        <a href="#naruci" style="text-decoration:none" class="btn-order">NABAVI SVOJ ŠPIL</a>
     </header>
 
     <section id="pravila">
-        <h2>KAKO SE <span>IGRA?</span></h2>
-        <div class="grid">
-            <div class="feature-card">
-                <i class="fas fa-qrcode"></i>
-                <h3>SKENIRAJ</h3>
-                <p>Otvori aplikaciju i skeniraj QR kod sa poleđine bilo koje kartice.</p>
+        <h2>MEHANIKA <span>IGRE</span></h2>
+        <div class="rules-grid">
+            <div class="rule-box">
+                <h3><i class="fas fa-music"></i> Osnove</h3>
+                <ul>
+                    <li>Svaki igrač dobija jednu "nultu" kartu sa vidljivom godinom.</li>
+                    <li>Niko ne smije vidjeti lice karte koju izvlačiš iz špila!</li>
+                    <li>Skeniraj QR kod, slušaj pjesmu i odluči gdje pripada.</li>
+                    <li>Pogodi mjesto u Timeline-u da zadržiš kartu. Prvi do 10 pobjeđuje!</li>
+                </ul>
             </div>
-            <div class="feature-card">
-                <i class="fas fa-play-circle"></i>
-                <h3>SLUŠAJ</h3>
-                <p>Uživaj u hitu koji se automatski učitava sa YouTube-a.</p>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-trophy"></i>
-                <h3>POREDAJ</h3>
-                <p>Stavi kartu u svoj hronološki niz i postani gospodar Balkana!</p>
-            </div>
-        </div>
-    </section>
-
-    <section id="pjesme">
-        <h2>LISTA <span>PJESAMA</span></h2>
-        <div class="search-container">
-            <input type="text" id="songSearch" placeholder="🔍 Pretraži izvođača ili pjesmu..." onkeyup="filterSongs()">
-            <div class="table-wrapper">
-                <table id="songTable">
-                    <thead>
-                        <tr>
-                            <th>Izvođač</th>
-                            <th>Pjesma</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
+            <div class="rule-box">
+                <h3><i class="fas fa-stream"></i> Gdje staviti kartu?</h3>
+                <ul>
+                    <li><strong>Lijevo:</strong> Starija pjesma od trenutne.</li>
+                    <li><strong>Desno:</strong> Novija pjesma od trenutne.</li>
+                    <li><strong>Između:</strong> Period između dvije postojeće godine.</li>
+                    <li><strong>Na kartu:</strong> Ako misliš da je ista godina.</li>
+                </ul>
             </div>
         </div>
-    </section>
 
-    <section id="naruci">
-        <h2>REZERVIŠI <span>ŠPIL</span></h2>
-        <div class="order-box">
-            <form action="https://formspree.io/f/tvoj-id" method="POST">
-                <input type="text" name="name" placeholder="Ime i Prezime" required>
-                <input type="email" name="email" placeholder="Email Adresa" required>
-                <input type="text" name="address" placeholder="Grad i Adresa" required>
-                <select name="paket">
-                    <option value="Standard">Standard Pack (300 pjesama) - 35 KM</option>
-                    <option value="Premium">Premium Pack (450 pjesama + Kutija) - 55 KM</option>
-                </select>
-                <button type="submit" class="submit-btn">NARUČI ODMAH</button>
-            </form>
-        </div>
-    </section>
-
-    <footer>
-        &copy; 2026 Balkan HitMaster | Autor: Anes Zrno <br>
-        Sve pjesme su vlasništvo njihovih autora.
-    </footer>
-
-    <script>
-        // Učitavanje iz CSV-a
-        Papa.parse("lista.csv", {
-            download: true,
-            header: true,
-            complete: function(results) {
-                let tableBody = document.getElementById("tableBody");
-                results.data.forEach(row => {
-                    if(row.Izvođač && row.Pjesma) {
-                        let tr = document.createElement("tr");
-                        tr.innerHTML = `<td>${row.Izvođač}</td><td>${row.Pjesma}</td>`;
-                        tableBody.appendChild(tr);
-                    }
-                });
-            }
-        });
-
-        // Search Filter
-        function filterSongs() {
-            let filter = document.getElementById("songSearch").value.toLowerCase();
-            let tr = document.getElementById("songTable").getElementsByTagName("tr");
-            for (let i = 1; i < tr.length; i++) {
-                let text = tr[i].textContent.toLowerCase();
-                tr[i].style.display = text.includes(filter) ? "" : "none";
-            }
-        }
-    </script>
-</body>
-</html>
+        <h2 style="margin-top: 60px;">MOĆ <span>ŽETONA</span></h2>
+        <div class="rules-grid">
+            <div class="rule-box">
+                <h3><i class="fas fa-coins"></i> Iskoristi Žetone</h3>
+                <div class="token-item"><span>Kupi pjesmu (zadrži pogrešnu)</span> <span class="token-cost">2 žetona</span></div>
+                <div class="token-item"><span>Krađa hita (prije postavljanja)</span> <span class="token-cost">2 žetona</span></div>
+                <div class="token-item"><span>Veto (natjeraj ga da odbaci)</span> <span class="token-cost">2 žetona</span></div>
+                <div class="token-item"><span>Skip (promijeni svoju kartu)</span> <span class="token-cost">1 žeton</span></div>
+                <div class="token-item"><span>Ispravka krivog navoda (opklada)</span> <span class="token-cost">1 žeton</span></div>
+            </div>
+            <div class="rule-box">
+                <h3><i class="fas fa-plus-circle"></i> Zaradi Žetone</h3>
+                <div class="token-item"><span>Pogodi izvođača i naziv</span> <span class="token-cost">+1 žeton</span></div>
