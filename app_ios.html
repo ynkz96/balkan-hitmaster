@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HitMaster iOS</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <style>
+        body { background: #0A0A0B; color: white; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; }
+        #video { width: 100%; height: 60vh; object-fit: cover; border-bottom: 2px solid #FF4D4D; }
+        .ui-container { padding: 20px; }
+        h1 { color: #FF4D4D; font-size: 1.2rem; margin: 10px 0; }
+        #status { font-size: 0.9rem; opacity: 0.6; margin-bottom: 10px; }
+        #startBtn { 
+            background: #FF4D4D; color: white; border: none; padding: 15px 30px; 
+            border-radius: 50px; font-weight: bold; font-size: 1rem; cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 77, 77, 0.4);
+        }
+        #yt-frame { width: 100%; height: 30vh; border: none; margin-top: 10px; display: none; }
+        canvas { display: none; } /* Skriveni canvas za obradu slike */
+    </style>
+</head>
+<body>
+
+    <h1>👑 BALKAN HITMASTER <span style="font-size: 0.7rem; opacity: 0.5;">iOS EDITION</span></h1>
+    
+    <video id="video" playsinline muted autoplay></video>
+    <canvas id="canvas"></canvas>
+
+    <div class="ui-container">
+        <div id="status">Spreman za skeniranje...</div>
+        <button id="startBtn">POKRENI SKENER</button>
+        <iframe id="yt-frame" allow="autoplay"></iframe>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const status = document.getElementById('status');
+        const startBtn = document.getElementById('startBtn');
+        const ytFrame = document.getElementById('yt-frame');
+
+        let scanning = false;
+
+        startBtn.addEventListener('click', () => {
+            startBtn.style.display = 'none';
+            initCamera();
+        });
+
+        function initCamera() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(stream => {
+                    video.srcObject = stream;
+                    video.setAttribute("playsinline", true);
+                    video.play();
+                    scanning = true;
+                    requestAnimationFrame(tick);
+                })
+                .catch(err => {
+                    status.innerText = "Greška s kamerom. Provjeri dozvole u Settings.";
+                });
+        }
+
+        function tick() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA && scanning) {
+                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+                
+                // CRITICAL FIX: Crveni QR kodovi na iOS-u trebaju procesiranje
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                
+                // Pojačavamo kontrast da bi iOS "vidio" crvenu kao crnu
+                let data = imageData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    let avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                    let val = avg < 128 ? 0 : 255; // Thresholding
+                    data[i] = data[i + 1] = data[i + 2] = val;
+                }
+                ctx.putImageData(imageData, 0, 0);
+
+                const code = jsQR(data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+
+                if (code) {
+                    handleScan(code.data);
+                }
+            }
+            if (scanning) requestAnimationFrame(tick);
+        }
+
+        function handleScan(qrData) {
+            // Izvlačenje ID-a (pretpostavka da je u QR-u samo ID ili YT link)
+            const videoIdMatch = qrData.match(/(?:v=|\/be\/|embed\/|shorts\/|^)([a-zA-Z0-9_-]{11})/);
+            if (videoIdMatch) {
+                const videoId = videoIdMatch[1];
+                scanning = false; // Pauziraj skener
+                status.innerText = "Pjesma pronađena! Učitavam...";
+                
+                ytFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                ytFrame.style.display = 'block';
+                
+                // Reset skenera nakon 10 sekundi
+                setTimeout(() => {
+                    scanning = true;
+                    status.innerText = "Skeniraj sljedeću kartu...";
+                    requestAnimationFrame(tick);
+                }, 10000);
+            }
+        }
+    </script>
+</body>
+</html>
