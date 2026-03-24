@@ -1,129 +1,735 @@
-<!DOCTYPE html>
-<html lang="hr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Balkan HitMaster iOS</title>
-
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ff4d4d">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
-
-<style>
-body {
-    background: #0a0a0b;
-    color: white;
-    font-family: sans-serif;
-    text-align: center;
-    margin: 0;
-}
-
-video, canvas {
-    width: 90%;
-    max-width: 320px;
-    border-radius: 20px;
-    margin-top: 20px;
-}
-
-button {
-    background: #ff4d4d;
-    color: white;
-    border: none;
-    padding: 15px 30px;
-    border-radius: 40px;
-    font-size: 16px;
-    margin-top: 20px;
-}
-
-#yt-hidden {
-    position: absolute;
-    left: -9999px;
-}
-</style>
-</head>
-
-<body>
-
-<h2>Balkan HitMaster iOS</h2>
-
-<button onclick="startCamera()">Pokreni kameru</button>
-
-<br>
-<video id="video" autoplay playsinline></video>
-<canvas id="canvas" hidden></canvas>
-
-<p id="status">Čekam kameru...</p>
-
-<button onclick="playSong()">Pusti muziku</button>
-<button onclick="stopSong()">Stop</button>
-
-<div id="yt-hidden"></div>
-
-<script>
-let video = document.getElementById("video");
-let canvas = document.getElementById("canvas");
-let ctx = canvas.getContext("2d");
-let scanning = false;
-let currentId = "";
-
-async function startCamera() {
-    const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }
-    });
-    video.srcObject = stream;
-    scanning = true;
-    scanFrame();
-}
-
-function scanFrame() {
-    if (!scanning) return;
-
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    // RED TO GRAYSCALE FILTER
-    for (let i = 0; i < imageData.data.length; i += 4) {
-        let r = imageData.data[i];
-        let g = imageData.data[i+1];
-        let b = imageData.data[i+2];
-        let gray = (r * 0.6 + g * 0.3 + b * 0.1);
-        imageData.data[i] = gray;
-        imageData.data[i+1] = gray;
-        imageData.data[i+2] = gray;
-    }
-
-    ctx.putImageData(imageData, 0, 0);
-
-    let code = jsQR(imageData.data, canvas.width, canvas.height);
-
-    if (code) {
-        scanning = false;
-        currentId = code.data.trim();
-        document.getElementById("status").innerText = "QR očitan!";
-    } else {
-        requestAnimationFrame(scanFrame);
-    }
-}
-
-function playSong() {
-    if(currentId.length < 5) return;
-
-    document.getElementById("yt-hidden").innerHTML =
-    `<iframe width="100" height="100"
-    src="https://www.youtube.com/embed/${currentId}?autoplay=1"
-    allow="autoplay"></iframe>`;
-}
-
-function stopSong() {
-    document.getElementById("yt-hidden").innerHTML = "";
-}
-</script>
-
-</body>
-</html>
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/app_ios.html b/app_ios.html
+index 1509f62891f51302c60a70d2329e82cb086eb738..5b98f70a835d0db7394537b5e6df33330ca7898b 100644
+--- a/app_ios.html
++++ b/app_ios.html
+@@ -1,129 +1,623 @@
+ <!DOCTYPE html>
+-<html lang="hr">
++<html lang="en">
+ <head>
+-<meta charset="UTF-8">
+-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+-<title>Balkan HitMaster iOS</title>
+-
+-<link rel="manifest" href="manifest.json">
+-<meta name="theme-color" content="#ff4d4d">
+-<meta name="apple-mobile-web-app-capable" content="yes">
+-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+-
+-<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+-
+-<style>
+-body {
+-    background: #0a0a0b;
+-    color: white;
+-    font-family: sans-serif;
+-    text-align: center;
+-    margin: 0;
+-}
+-
+-video, canvas {
+-    width: 90%;
+-    max-width: 320px;
+-    border-radius: 20px;
+-    margin-top: 20px;
+-}
+-
+-button {
+-    background: #ff4d4d;
+-    color: white;
+-    border: none;
+-    padding: 15px 30px;
+-    border-radius: 40px;
+-    font-size: 16px;
+-    margin-top: 20px;
+-}
+-
+-#yt-hidden {
+-    position: absolute;
+-    left: -9999px;
+-}
+-</style>
+-</head>
++  <meta charset="UTF-8" />
++  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
++  <meta name="theme-color" content="#0f0f12" />
++  <meta name="apple-mobile-web-app-capable" content="yes" />
++  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
++  <meta name="apple-mobile-web-app-title" content="HitMaster iOS" />
++  <title>Balkan HitMaster iOS</title>
++  <style>
++    :root {
++      --bg: #0b0b0f;
++      --card: #17171d;
++      --card-2: #21212b;
++      --text: #f5f5f7;
++      --muted: #a8a8b3;
++      --accent: #e11d48;
++      --accent-2: #ff375f;
++      --ok: #22c55e;
++      --radius-lg: 20px;
++      --radius-md: 14px;
++      --shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
++      --safe-top: env(safe-area-inset-top, 0px);
++      --safe-bottom: env(safe-area-inset-bottom, 0px);
++    }
+ 
+-<body>
++    * {
++      box-sizing: border-box;
++      -webkit-tap-highlight-color: transparent;
++      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
++    }
+ 
+-<h2>Balkan HitMaster iOS</h2>
++    html,
++    body {
++      margin: 0;
++      padding: 0;
++      width: 100%;
++      height: 100%;
++      background: radial-gradient(circle at top, #1a1a24 0%, var(--bg) 45%);
++      color: var(--text);
++      overflow: hidden;
++    }
+ 
+-<button onclick="startCamera()">Pokreni kameru</button>
++    body {
++      display: flex;
++      justify-content: center;
++      align-items: stretch;
++    }
+ 
+-<br>
+-<video id="video" autoplay playsinline></video>
+-<canvas id="canvas" hidden></canvas>
++    .app {
++      position: relative;
++      width: 100%;
++      max-width: 560px;
++      height: 100%;
++      padding: calc(16px + var(--safe-top)) 16px calc(20px + var(--safe-bottom));
++    }
++
++    .page {
++      position: absolute;
++      inset: calc(16px + var(--safe-top)) 16px calc(20px + var(--safe-bottom)) 16px;
++      display: flex;
++      flex-direction: column;
++      justify-content: center;
++      align-items: center;
++      gap: 18px;
++      opacity: 0;
++      transform: translateY(14px) scale(0.985);
++      pointer-events: none;
++      transition: opacity 280ms ease, transform 280ms ease;
++    }
++
++    .page.active {
++      opacity: 1;
++      transform: translateY(0) scale(1);
++      pointer-events: auto;
++    }
+ 
+-<p id="status">Čekam kameru...</p>
++    .logo {
++      width: 110px;
++      height: 110px;
++      border-radius: 50%;
++      background: conic-gradient(from 90deg, #2f1119, #541626, #8b1538, #541626, #2f1119);
++      display: grid;
++      place-items: center;
++      box-shadow: var(--shadow);
++      border: 2px solid #8e1d39;
++      position: relative;
++    }
+ 
+-<button onclick="playSong()">Pusti muziku</button>
+-<button onclick="stopSong()">Stop</button>
++    .logo::before {
++      content: "";
++      width: 28px;
++      height: 28px;
++      border-radius: 50%;
++      background: #f2f2f2;
++      box-shadow: inset 0 0 0 4px #c9c9d1;
++    }
+ 
+-<div id="yt-hidden"></div>
++    h1,
++    h2,
++    p {
++      margin: 0;
++      text-align: center;
++    }
+ 
+-<script>
+-let video = document.getElementById("video");
+-let canvas = document.getElementById("canvas");
+-let ctx = canvas.getContext("2d");
+-let scanning = false;
+-let currentId = "";
++    h1 {
++      font-size: 2rem;
++      letter-spacing: 0.3px;
++    }
+ 
+-async function startCamera() {
+-    const stream = await navigator.mediaDevices.getUserMedia({
+-        video: { facingMode: "environment" }
+-    });
+-    video.srcObject = stream;
+-    scanning = true;
+-    scanFrame();
+-}
++    h2 {
++      font-size: 1.35rem;
++    }
+ 
+-function scanFrame() {
+-    if (!scanning) return;
++    p {
++      color: var(--muted);
++      line-height: 1.4;
++      max-width: 320px;
++      font-size: 0.96rem;
++    }
+ 
+-    canvas.width = video.videoWidth;
+-    canvas.height = video.videoHeight;
+-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
++    .btn {
++      width: min(280px, 82vw);
++      border: none;
++      border-radius: 999px;
++      padding: 14px 20px;
++      font-size: 1rem;
++      font-weight: 700;
++      color: #fff;
++      background: linear-gradient(135deg, var(--accent), var(--accent-2));
++      box-shadow: 0 8px 24px rgba(225, 29, 72, 0.38);
++      cursor: pointer;
++      transition: transform 140ms ease, filter 140ms ease;
++    }
+ 
+-    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
++    .btn:active {
++      transform: scale(0.97);
++      filter: brightness(1.05);
++    }
+ 
+-    // RED TO GRAYSCALE FILTER
+-    for (let i = 0; i < imageData.data.length; i += 4) {
+-        let r = imageData.data[i];
+-        let g = imageData.data[i+1];
+-        let b = imageData.data[i+2];
+-        let gray = (r * 0.6 + g * 0.3 + b * 0.1);
+-        imageData.data[i] = gray;
+-        imageData.data[i+1] = gray;
+-        imageData.data[i+2] = gray;
++    .btn.secondary {
++      background: #2a2a35;
++      box-shadow: none;
++      border: 1px solid #3a3a47;
++      color: #ddd;
+     }
+ 
+-    ctx.putImageData(imageData, 0, 0);
++    .card {
++      width: min(100%, 420px);
++      background: linear-gradient(180deg, var(--card), var(--card-2));
++      border: 1px solid #2d2d39;
++      border-radius: var(--radius-lg);
++      padding: 16px;
++      box-shadow: var(--shadow);
++    }
+ 
+-    let code = jsQR(imageData.data, canvas.width, canvas.height);
++    .scanner-wrap {
++      width: 100%;
++      aspect-ratio: 3 / 4;
++      border-radius: 16px;
++      overflow: hidden;
++      background: #050507;
++      border: 1px solid #2d2d39;
++      position: relative;
++    }
+ 
+-    if (code) {
+-        scanning = false;
+-        currentId = code.data.trim();
+-        document.getElementById("status").innerText = "QR očitan!";
+-    } else {
+-        requestAnimationFrame(scanFrame);
++    #video {
++      width: 100%;
++      height: 100%;
++      object-fit: cover;
++      background: #000;
++    }
++
++    .scan-frame {
++      position: absolute;
++      inset: 14% 10%;
++      border: 2px solid rgba(255, 55, 95, 0.85);
++      border-radius: 14px;
++      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.25);
++      pointer-events: none;
++    }
++
++    .scan-line {
++      position: absolute;
++      left: 11%;
++      right: 11%;
++      top: 20%;
++      height: 2px;
++      background: linear-gradient(90deg, transparent, #ff5f7f, transparent);
++      animation: sweep 2s linear infinite;
++      pointer-events: none;
++    }
++
++    @keyframes sweep {
++      0% { transform: translateY(0); }
++      50% { transform: translateY(240px); }
++      100% { transform: translateY(0); }
++    }
++
++    .status {
++      margin-top: 12px;
++      min-height: 20px;
++      color: var(--muted);
++      font-size: 0.92rem;
++      text-align: center;
++    }
++
++    .status.error {
++      color: #ff8ca5;
++    }
++
++    .vinyl {
++      width: min(250px, 66vw);
++      aspect-ratio: 1;
++      border-radius: 50%;
++      position: relative;
++      background:
++        radial-gradient(circle at center, #0f0f10 0 28px, #d8d8de 28px 34px, #16161d 34px 45px, #111116 45px),
++        repeating-radial-gradient(circle at center, #1f1f28 0 4px, #16161d 4px 8px);
++      border: 1px solid #333343;
++      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
++      animation: spin 2.3s linear infinite;
++      animation-play-state: paused;
++    }
++
++    .vinyl.playing {
++      animation-play-state: running;
++    }
++
++    .vinyl::after {
++      content: "";
++      position: absolute;
++      inset: 44%;
++      border-radius: 50%;
++      background: var(--accent);
++      border: 2px solid #f4c0cb;
++    }
++
++    @keyframes spin {
++      from { transform: rotate(0deg); }
++      to { transform: rotate(360deg); }
++    }
++
++    .iframe-wrap {
++      width: 100%;
++      max-width: 420px;
++      aspect-ratio: 16 / 9;
++      border-radius: 14px;
++      overflow: hidden;
++      border: 1px solid #2e2e3b;
++      background: #000;
++    }
++
++    .hidden {
++      display: none !important;
++    }
++
++    #debugCanvas {
++      display: none;
+     }
+-}
+ 
+-function playSong() {
+-    if(currentId.length < 5) return;
++    .pill {
++      font-size: 0.78rem;
++      color: #ffc0cd;
++      border: 1px solid #6b2033;
++      border-radius: 999px;
++      padding: 6px 10px;
++      background: rgba(225, 29, 72, 0.12);
++    }
++  </style>
++</head>
++<body>
++  <main class="app" role="application" aria-label="Balkan HitMaster iOS Web App">
++    <section id="splash" class="page active" aria-label="Splash screen">
++      <div class="logo" aria-hidden="true"></div>
++      <h1>Balkan HitMaster</h1>
++      <p>iOS Edition</p>
++      <div class="pill">Optimized for Safari + PWA</div>
++    </section>
++
++    <section id="menu" class="page" aria-label="Menu screen">
++      <div class="logo" aria-hidden="true"></div>
++      <h2>Ready to Scan</h2>
++      <p>Scan your next card to reveal the music challenge.</p>
++      <button id="startScanBtn" class="btn" type="button">Start Scan</button>
++    </section>
++
++    <section id="scanner" class="page" aria-label="Scanner screen">
++      <div class="card">
++        <h2>Scan QR Card</h2>
++        <p style="margin-top:6px">Point the rear camera at a QR code.</p>
++        <div class="scanner-wrap" style="margin-top:12px;">
++          <video id="video" playsinline muted></video>
++          <div class="scan-frame"></div>
++          <div class="scan-line"></div>
++        </div>
++        <div id="scanStatus" class="status">Waiting to start camera…</div>
++      </div>
++      <button id="cancelScanBtn" class="btn secondary" type="button">Back to Menu</button>
++      <canvas id="debugCanvas" width="640" height="480"></canvas>
++    </section>
++
++    <section id="player" class="page" aria-label="Player screen">
++      <div class="vinyl" id="vinyl"></div>
++      <h2 id="trackTitle">Card Loaded</h2>
++      <p id="trackInfo">Tap Play Music to launch YouTube.</p>
++      <button id="playMusicBtn" class="btn" type="button">Play Music</button>
++      <div id="playerContainer" class="iframe-wrap hidden" aria-live="polite"></div>
++      <button id="nextCardBtn" class="btn secondary" type="button">Next Card</button>
++    </section>
++  </main>
++
++  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" defer></script>
++  <script>
++    (() => {
++      const pageEls = {
++        splash: document.getElementById('splash'),
++        menu: document.getElementById('menu'),
++        scanner: document.getElementById('scanner'),
++        player: document.getElementById('player')
++      };
++
++      const startScanBtn = document.getElementById('startScanBtn');
++      const cancelScanBtn = document.getElementById('cancelScanBtn');
++      const playMusicBtn = document.getElementById('playMusicBtn');
++      const nextCardBtn = document.getElementById('nextCardBtn');
++      const video = document.getElementById('video');
++      const canvas = document.getElementById('debugCanvas');
++      const ctx = canvas.getContext('2d', { willReadFrequently: true });
++      const scanStatus = document.getElementById('scanStatus');
++      const vinyl = document.getElementById('vinyl');
++      const trackTitle = document.getElementById('trackTitle');
++      const trackInfo = document.getElementById('trackInfo');
++      const playerContainer = document.getElementById('playerContainer');
++
++      let stream = null;
++      let rafId = null;
++      let scanning = false;
++      let scannedVideoId = '';
++      let userHasInteracted = false;
++
++      const YT_ID_REGEX = /^[a-zA-Z0-9_-]{11}$/;
++
++      function showPage(name) {
++        Object.entries(pageEls).forEach(([key, el]) => {
++          el.classList.toggle('active', key === name);
++        });
++      }
++
++      function setStatus(message, isError = false) {
++        scanStatus.textContent = message;
++        scanStatus.classList.toggle('error', isError);
++      }
++
++      function stopCamera() {
++        scanning = false;
++        if (rafId) {
++          cancelAnimationFrame(rafId);
++          rafId = null;
++        }
++        if (stream) {
++          stream.getTracks().forEach(track => track.stop());
++          stream = null;
++        }
++        video.srcObject = null;
++      }
++
++      function toGrayscale(imageData) {
++        const data = imageData.data;
++        for (let i = 0; i < data.length; i += 4) {
++          const r = data[i];
++          const g = data[i + 1];
++          const b = data[i + 2];
++          // Slight red emphasis helps red QR capture under mixed lighting.
++          const gray = (r * 0.45 + g * 0.35 + b * 0.20) | 0;
++          data[i] = gray;
++          data[i + 1] = gray;
++          data[i + 2] = gray;
++        }
++        return imageData;
++      }
++
++      function handleDetectedVideoId(videoId) {
++        scannedVideoId = videoId;
++        stopCamera();
++        showPage('player');
++        trackTitle.textContent = 'Card detected';
++        trackInfo.textContent = `YouTube ID: ${videoId}`;
++        playerContainer.classList.add('hidden');
++        playerContainer.innerHTML = '';
++        vinyl.classList.remove('playing');
++      }
++
++      function scanLoop() {
++        if (!scanning || !stream) return;
++
++        if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
++          const width = video.videoWidth;
++          const height = video.videoHeight;
++          if (width && height) {
++            canvas.width = width;
++            canvas.height = height;
++            ctx.drawImage(video, 0, 0, width, height);
++            let imageData = ctx.getImageData(0, 0, width, height);
++            imageData = toGrayscale(imageData);
++
++            const code = window.jsQR(imageData.data, width, height, {
++              inversionAttempts: 'attemptBoth'
++            });
++
++            if (code?.data) {
++              const qrData = code.data.trim();
++              if (YT_ID_REGEX.test(qrData)) {
++                setStatus('QR detected successfully.');
++                handleDetectedVideoId(qrData);
++                return;
++              }
++              setStatus('QR found, but not a valid YouTube Video ID.', true);
++            }
++          }
++        }
++
++        rafId = requestAnimationFrame(scanLoop);
++      }
++
++      async function startScanner() {
++        userHasInteracted = true;
++        stopYouTube();
++        showPage('scanner');
++        setStatus('Requesting camera permission…');
++
++        if (!navigator.mediaDevices?.getUserMedia) {
++          setStatus('Camera API is not supported in this browser.', true);
++          return;
++        }
++
++        try {
++          stream = await navigator.mediaDevices.getUserMedia({
++            video: {
++              facingMode: { ideal: 'environment' },
++              width: { ideal: 1280 },
++              height: { ideal: 720 }
++            },
++            audio: false
++          });
++
++          video.srcObject = stream;
++          await video.play();
++          scanning = true;
++          setStatus('Scanning... hold the QR code steady.');
++          rafId = requestAnimationFrame(scanLoop);
++        } catch (err) {
++          console.error(err);
++          if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
++            setStatus('Camera permission denied. Please allow camera access in Safari settings.', true);
++          } else if (err && err.name === 'NotFoundError') {
++            setStatus('No camera found on this device.', true);
++          } else {
++            setStatus('Unable to start camera. Close other apps using camera and try again.', true);
++          }
++        }
++      }
++
++      function stopYouTube() {
++        playerContainer.innerHTML = '';
++        playerContainer.classList.add('hidden');
++        vinyl.classList.remove('playing');
++      }
++
++      function playYouTube() {
++        userHasInteracted = true;
++        if (!scannedVideoId || !YT_ID_REGEX.test(scannedVideoId)) {
++          trackInfo.textContent = 'No valid card loaded yet.';
++          return;
++        }
++
++        const src = `https://www.youtube.com/embed/${encodeURIComponent(scannedVideoId)}?autoplay=1&playsinline=1&rel=0`;
++        playerContainer.innerHTML = `
++          <iframe
++            title="Balkan HitMaster Player"
++            width="100%"
++            height="100%"
++            src="${src}"
++            frameborder="0"
++            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
++            allowfullscreen
++          ></iframe>
++        `;
++        playerContainer.classList.remove('hidden');
++        vinyl.classList.add('playing');
++        trackInfo.textContent = 'Now playing from YouTube';
++      }
++
++      function goToMenu() {
++        stopCamera();
++        stopYouTube();
++        showPage('menu');
++      }
++
++      function nextCard() {
++        stopYouTube();
++        scannedVideoId = '';
++        startScanner();
++      }
++
++      function setupPWAAssets() {
++        const iconSvg = encodeURIComponent(`
++          <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'>
++            <defs>
++              <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
++                <stop offset='0%' stop-color='#e11d48'/>
++                <stop offset='100%' stop-color='#ff375f'/>
++              </linearGradient>
++            </defs>
++            <rect width='256' height='256' rx='54' fill='#101016'/>
++            <circle cx='128' cy='128' r='84' fill='url(#g)'/>
++            <circle cx='128' cy='128' r='26' fill='#f3f4f6'/>
++            <circle cx='128' cy='128' r='10' fill='#111827'/>
++          </svg>
++        `);
++        const iconUrl = `data:image/svg+xml;charset=utf-8,${iconSvg}`;
++
++        const appleTouch = document.createElement('link');
++        appleTouch.rel = 'apple-touch-icon';
++        appleTouch.href = iconUrl;
++        document.head.appendChild(appleTouch);
++
++        const manifest = {
++          name: 'Balkan HitMaster iOS',
++          short_name: 'HitMaster',
++          start_url: './app_ios.html',
++          display: 'standalone',
++          background_color: '#0b0b0f',
++          theme_color: '#0f0f12',
++          icons: [
++            { src: iconUrl, sizes: '192x192', type: 'image/svg+xml', purpose: 'any' },
++            { src: iconUrl, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
++          ]
++        };
++
++        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
++        const manifestLink = document.createElement('link');
++        manifestLink.rel = 'manifest';
++        manifestLink.href = URL.createObjectURL(manifestBlob);
++        document.head.appendChild(manifestLink);
++      }
++
++      async function registerServiceWorker() {
++        if (!('serviceWorker' in navigator) || !window.isSecureContext) return;
++
++        const swCode = `
++          const CACHE_NAME = 'balkan-hitmaster-ios-v1';
++          self.addEventListener('install', event => {
++            event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./', './app_ios.html'])));
++            self.skipWaiting();
++          });
++          self.addEventListener('activate', event => {
++            event.waitUntil((async () => {
++              const keys = await caches.keys();
++              await Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)));
++              await self.clients.claim();
++            })());
++          });
++          self.addEventListener('fetch', event => {
++            if (event.request.method !== 'GET') return;
++            event.respondWith((async () => {
++              const cached = await caches.match(event.request);
++              if (cached) return cached;
++              try {
++                const response = await fetch(event.request);
++                return response;
++              } catch {
++                const fallback = await caches.match('./app_ios.html');
++                return fallback || Response.error();
++              }
++            })());
++          });
++        `;
++
++        try {
++          const blob = new Blob([swCode], { type: 'text/javascript' });
++          const swUrl = URL.createObjectURL(blob);
++          await navigator.serviceWorker.register(swUrl, { scope: './' });
++        } catch (err) {
++          console.warn('Service worker registration failed:', err);
++        }
++      }
++
++      function init() {
++        setupPWAAssets();
++        registerServiceWorker();
++
++        setTimeout(() => {
++          showPage('menu');
++        }, 1350);
++
++        startScanBtn.addEventListener('click', startScanner);
++        cancelScanBtn.addEventListener('click', goToMenu);
++        playMusicBtn.addEventListener('click', () => {
++          if (!userHasInteracted) return;
++          playYouTube();
++        });
++        nextCardBtn.addEventListener('click', nextCard);
+ 
+-    document.getElementById("yt-hidden").innerHTML =
+-    `<iframe width="100" height="100"
+-    src="https://www.youtube.com/embed/${currentId}?autoplay=1"
+-    allow="autoplay"></iframe>`;
+-}
++        document.addEventListener('visibilitychange', () => {
++          if (document.hidden) {
++            stopCamera();
++          }
++        });
+ 
+-function stopSong() {
+-    document.getElementById("yt-hidden").innerHTML = "";
+-}
+-</script>
++        window.addEventListener('pagehide', stopCamera);
++      }
+ 
++      if (document.readyState === 'loading') {
++        document.addEventListener('DOMContentLoaded', init);
++      } else {
++        init();
++      }
++    })();
++  </script>
+ </body>
+ </html>
+ 
+EOF
+)
