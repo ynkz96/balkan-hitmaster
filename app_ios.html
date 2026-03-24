@@ -1,132 +1,129 @@
 <!DOCTYPE html>
 <html lang="hr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Balkan HitMaster iOS</title>
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-    <style>
-        body { background: #0A0A0B; color: white; font-family: sans-serif; margin: 0; overflow: hidden; }
-        
-        /* Splash Screen */
-        #splash {
-            position: fixed; top:0; left:0; width:100%; height:100%; 
-            background: #000; z-index: 1000; display: flex; flex-direction: column; 
-            justify-content: center; align-items: center; transition: 0.5s;
-        }
-        .splash-logo { color: #FF4D4D; font-size: 2rem; font-weight: 900; letter-spacing: 5px; margin-bottom: 20px; }
-        .disclaimer { font-size: 0.8rem; opacity: 0.6; text-align: center; max-width: 250px; margin-bottom: 40px; }
-        .start-btn { 
-            background: #FF4D4D; color: white; border: none; padding: 18px 40px; 
-            border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 1.1rem;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Balkan HitMaster iOS</title>
 
-        /* Main UI */
-        #scanner-container { position: relative; width: 100%; height: 100vh; }
-        #video { width: 100%; height: 100%; object-fit: cover; }
-        .scan-overlay {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 250px; height: 250px; border: 2px solid #FF4D4D; border-radius: 20px;
-            box-shadow: 0 0 0 2000px rgba(0,0,0,0.7); pointer-events: none;
-        }
-        .scan-line {
-            position: absolute; top:0; left:0; width:100%; height:2px; background: #FF4D4D;
-            box-shadow: 0 0 10px #FF4D4D; animation: scan 2s linear infinite;
-        }
-        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
-        
-        #yt-player { position: absolute; bottom: 0; width: 100%; height: 40vh; background: #000; display: none; z-index: 100; }
-        canvas { display: none; }
-    </style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff4d4d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+
+<style>
+body {
+    background: #0a0a0b;
+    color: white;
+    font-family: sans-serif;
+    text-align: center;
+    margin: 0;
+}
+
+video, canvas {
+    width: 90%;
+    max-width: 320px;
+    border-radius: 20px;
+    margin-top: 20px;
+}
+
+button {
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 40px;
+    font-size: 16px;
+    margin-top: 20px;
+}
+
+#yt-hidden {
+    position: absolute;
+    left: -9999px;
+}
+</style>
 </head>
+
 <body>
 
-    <div id="splash">
-        <div class="splash-logo">BALKAN<br>HITMASTER</div>
-        <div class="disclaimer">UPOZORENJE: Igra uzrokuje pretjerano pjevanje i lomljenje čaša. Koristite na vlastitu odgovornost.</div>
-        <button class="start-btn" onclick="initApp()">HAJDE DA LUDUJEMO!</button>
-    </div>
+<h2>Balkan HitMaster iOS</h2>
 
-    <div id="scanner-container">
-        <video id="video" playsinline muted autoplay></video>
-        <div class="scan-overlay"><div class="scan-line"></div></div>
-        <canvas id="canvas"></canvas>
-        <div id="yt-player">
-            <iframe id="iframe" width="100%" height="100%" frameborder="0" allow="autoplay"></iframe>
-            <button onclick="closePlayer()" style="position:absolute; top:-40px; right:10px; background:#FF4D4D; color:white; border:none; padding:10px 20px; border-radius:10px;">ZATVORI</button>
-        </div>
-    </div>
+<button onclick="startCamera()">Pokreni kameru</button>
 
-    <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const splash = document.getElementById('splash');
+<br>
+<video id="video" autoplay playsinline></video>
+<canvas id="canvas" hidden></canvas>
 
-        function initApp() {
-            splash.style.opacity = '0';
-            setTimeout(() => splash.style.display = 'none', 500);
-            startScanner();
-        }
+<p id="status">Čekam kameru...</p>
 
-        function startScanner() {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                .then(stream => {
-                    video.srcObject = stream;
-                    video.setAttribute("playsinline", true);
-                    video.play();
-                    requestAnimationFrame(tick);
-                });
-        }
+<button onclick="playSong()">Pusti muziku</button>
+<button onclick="stopSong()">Stop</button>
 
-        function tick() {
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                canvas.width = 400; // Manji canvas = brže procesiranje
-                canvas.height = 400;
-                
-                // Crtamo središnji dio kamere u kvadratni canvas
-                ctx.drawImage(video, (video.videoWidth-400)/2, (video.videoHeight-400)/2, 400, 400, 0, 0, 400, 400);
-                
-                const imageData = ctx.getImageData(0, 0, 400, 400);
-                const data = imageData.data;
+<div id="yt-hidden"></div>
 
-                // RED FILTER (KLJUČ ZA TVOJE KARTE):
-                // Izolujemo crvenu boju i pojačavamo kontrast do ekstrema
-                for (let i = 0; i < data.length; i += 4) {
-                    let r = data[i];
-                    let g = data[i+1];
-                    let b = data[i+2];
-                    
-                    // Ako je boja pretežno crvena, pretvori u crnu, ostalo u bijelu
-                    if (r > 100 && g < 100 && b < 100) {
-                        data[i] = data[i+1] = data[i+2] = 0; // Black
-                    } else {
-                        data[i] = data[i+1] = data[i+2] = 255; // White
-                    }
-                }
-                
-                const code = jsQR(data, 400, 400);
-                if (code) {
-                    handleScan(code.data);
-                    return; // Zaustavi tick dok traje pjesma
-                }
-            }
-            requestAnimationFrame(tick);
-        }
+<script>
+let video = document.getElementById("video");
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+let scanning = false;
+let currentId = "";
 
-        function handleScan(id) {
-            const videoId = id.match(/[a-zA-Z0-9_-]{11}/);
-            if (videoId) {
-                document.getElementById('iframe').src = `https://www.youtube.com/embed/${videoId[0]}?autoplay=1`;
-                document.getElementById('yt-player').style.display = 'block';
-            }
-        }
+async function startCamera() {
+    const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" }
+    });
+    video.srcObject = stream;
+    scanning = true;
+    scanFrame();
+}
 
-        function closePlayer() {
-            document.getElementById('yt-player').style.display = 'none';
-            document.getElementById('iframe').src = "";
-            requestAnimationFrame(tick);
-        }
-    </script>
+function scanFrame() {
+    if (!scanning) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // RED TO GRAYSCALE FILTER
+    for (let i = 0; i < imageData.data.length; i += 4) {
+        let r = imageData.data[i];
+        let g = imageData.data[i+1];
+        let b = imageData.data[i+2];
+        let gray = (r * 0.6 + g * 0.3 + b * 0.1);
+        imageData.data[i] = gray;
+        imageData.data[i+1] = gray;
+        imageData.data[i+2] = gray;
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+
+    let code = jsQR(imageData.data, canvas.width, canvas.height);
+
+    if (code) {
+        scanning = false;
+        currentId = code.data.trim();
+        document.getElementById("status").innerText = "QR očitan!";
+    } else {
+        requestAnimationFrame(scanFrame);
+    }
+}
+
+function playSong() {
+    if(currentId.length < 5) return;
+
+    document.getElementById("yt-hidden").innerHTML =
+    `<iframe width="100" height="100"
+    src="https://www.youtube.com/embed/${currentId}?autoplay=1"
+    allow="autoplay"></iframe>`;
+}
+
+function stopSong() {
+    document.getElementById("yt-hidden").innerHTML = "";
+}
+</script>
+
 </body>
 </html>
